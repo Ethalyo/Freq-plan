@@ -132,8 +132,6 @@
                 display: grid;
                 grid-template-columns: repeat(3, 1fr);
                 grid-auto-rows: 1fr;
-                gap: 10px;
-                padding: 20px;
                 margin-top: 80px;
                 height: calc(100vh - 80px);
                 width: 100vw;
@@ -147,6 +145,16 @@
                 position: fixed;;
                 width: 100%;
                 z-index: 1000;
+                justify-content: flex-start;
+                gap: 10px;
+                padding: 10px 20px;
+            }
+            header nav {
+                display: none;
+            }
+            #version2, 
+            #themeToggle {
+                margin-left: 25px;
             }
         }
         a:focus, button:focus {
@@ -1779,29 +1787,53 @@ async function validateAndGenerate(e) {
 })();
 const version2Btn = document.getElementById("version2");
 let isFullScreen = false;
+let childWindow = null;
 
 version2Btn.addEventListener("click", () => {
-    isFullScreen = !isFullScreen;
+    const screenWidth = window.screen.availWidth;
+    const screenHeight = window.screen.availHeight;
+    const halfWidth = screenWidth / 2;
 
-    if (isFullScreen) {
-        const screenWidth = window.screen.availWidth;
-        const screenHeight = window.screen.availHeight;
-
-        window.moveTo(0, 0);
-
-        window.resizeTo(screenWidth, screenHeight);
-
-        version2Btn.textContent = "🗗"; 
+    if (!isFullScreen) {
+        if (!childWindow || childWindow.closed) {
+            childWindow = window.open(
+                window.location.href, 
+                "_blank", 
+                `width=${screenWidth},height=${screenHeight},left=0,top=0`
+            );
+            childWindow.addEventListener('load', () => {
+                childWindow.document.body.style.minWidth = '1528px';
+                const childBtn = childWindow.document.getElementById("Version2");
+                if(childBtn) {
+                    childBtn.textContent = "🗗";
+                    childBtn.addEventListener("click", () => {
+                        childWindow.resizeTo(halfWidth, screenHeight);
+                        childWindow.moveTo(halfWidth, 0);
+                        childBtn.textContent = "⊞";
+                        isFullScreen = false;
+                    })
+                }
+            })
+        } else {
+            childWindow.resizeTo(screenWidth, screenHeight);
+            childWindow.moveTo(0, 0);
+            childWindow.focus();
+        }
+        isFullScreen = true;
+        version2Btn.textContent = "🗗";
     } else {
-        const screenWidth = window.screen.availWidth;
-        const screenHeight = window.screen.availHeight;
-
-        window.moveTo(screenWidth / 2, 0); 
-        window.resizeTo(screenWidth / 2, screenHeight); 
-
+        if (childWindow && !childWindow.closed) {
+            childWindow.resizeTo(halfWidth, screenHeight);
+            childWindow.moveTo(halfWidth, 0);
+            childWindow.focus();
+            childWindow.document.getElementById("version2").textContent = "⊞";
+        }
+        isFullScreen = false;
         version2Btn.textContent = "⊞";
     }
 });
+window.history.replaceState({}, "Freq-Plan", "/Freq-Plan.com");
+window.history.pushState({}, "Freq-plan", "/Freq-Plan.com");
 
 
 </script>
